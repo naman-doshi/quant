@@ -9,12 +9,13 @@ def auth():
   apiHost = 'https://api.stage.dydx.exchange'
   accAddress = '0x019c166611D65dc1299FF1C7796a18CcFd2eDeA6'
   networkID = 3
+  pkey = '768d3a7cc07f58a608421d7386bddbefc0ac472e4c0c2d9bd30d1eab9cd8a8b2'
 
   client = Client(
       network_id=networkID,
       host=apiHost,
       default_ethereum_address=accAddress,
-      eth_private_key=os.getenv('privateKey')
+      eth_private_key=pkey
   )
 
   key = client.onboarding.derive_stark_key(
