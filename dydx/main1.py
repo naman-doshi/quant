@@ -55,7 +55,6 @@ while True:
 
     
     #init sell
-    print(1)
     client = dydxMethods.auth()
     orderbook = client.public.get_orderbook(market=symbol).data
     markets = client.public.get_markets(market=symbol).data['markets'][symbol]
@@ -64,23 +63,17 @@ while True:
     sellPrice = float(orderbook['asks'][0]['price'])
     buyPrice = float(all_positions[0]['entryPrice'])
     buyPrice = round(buyPrice, str(tickSize).count('0'))
-    print(2)
 
     if sellPrice < buyPrice:
       sellPrice = buyPrice + (5*tickSize)
     
-    print(3, sellPrice)
-    
     all_positions = dydxMethods.getPositions(client, symbol)
     remainingSize = all_positions[0]['size']
     sellPrice = round(sellPrice, str(tickSize).count('0'))
-    print(4)
 
     emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
-    print(5)
 
     orderID = tradingMethods.sell(client, symbol, sellPrice, remainingSize)
-    print(6)
 
     while tradingMethods.isOrderOpen(client) == True:
       try:
@@ -133,10 +126,8 @@ while True:
       
       time.sleep(3)
     
-    print('buying over')
 
     client = dydxMethods.auth()
-    print('buying over1')
     orderbook = client.public.get_orderbook(market=symbol).data
     markets = client.public.get_markets(market=symbol).data['markets'][symbol]
     all_positions = dydxMethods.getPositions(client, symbol)
@@ -144,7 +135,6 @@ while True:
     buyPrice = float(orderbook['bids'][0]['price'])
     sellPrice = float(all_positions[0]['entryPrice'])
     sellPrice = round(sellPrice, str(tickSize).count('0'))
-    print('buying over2')
 
     if sellPrice < buyPrice:
       buyPrice = sellPrice - (5*tickSize)
@@ -154,14 +144,11 @@ while True:
     buyPrice = round(buyPrice, str(tickSize).count('0'))
     
 
-    print('emailed')
     
     emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
-    print('emailed')
 
     client = dydxMethods.auth()
     orderID = tradingMethods.buy(client, symbol, buyPrice, remainingSize)
-    print('selling now..')
 
     while tradingMethods.isOrderOpen(client) == True:
       try:
