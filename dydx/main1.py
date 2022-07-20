@@ -29,7 +29,7 @@ while True:
       print(end-start)
       #time
       if end-start < 600 or tradingMethods.isPositionOpen(client) == True:
-        try:
+        # try:
             all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
             if float(remainingSize) != amount:
@@ -38,8 +38,8 @@ while True:
             orderID = tradingMethods.updateBuy(client, symbol, buyPrice, orderID)
             buyPrice = orderID[1]
             orderID = orderID[0]
-        except:
-            break
+        # except:
+        #     break
       else:
         print('time limit exceeded')
         tradingMethods.cancelOrders(client)

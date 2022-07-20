@@ -215,6 +215,7 @@ def stopLoss(client, direction, symbol, price, remainingSize):
     return order_id
 
 def cancelOrders(client):
-    all_orders = client.private.get_orders(type='LIMIT')['orders']
+    all_orders = client.private.get_orders().data['orders']
     for i in all_orders:
-        client.private.cancel_order(order_id=i['id'])
+        if i['type'] == 'LIMIT':
+            client.private.cancel_order(order_id=i['id'])
