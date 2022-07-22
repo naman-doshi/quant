@@ -219,3 +219,12 @@ def cancelOrders():
     for i in all_orders:
         if i['type'] == 'LIMIT':
             client.private.cancel_order(order_id=i['id'])
+
+def addVolume(add):
+    with open('dydx/volume.txt') as f:
+        lines = f.readlines()
+        vol = int(lines[0])
+        vol += add
+    with open('dydx/volume.txt', 'w') as f:
+        f.write(str(vol))
+
