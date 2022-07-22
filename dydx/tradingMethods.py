@@ -32,21 +32,21 @@ def findSymbol():
     symbol = next(iter(coefficientDict))
     return symbol
 
-def buy(client, symbol, buyPrice, amt):
+def buy(symbol, buyPrice, amt):
     try:
       buy = dydxMethods.buy(client, str(symbol), str(buyPrice), str(amt))
     except:
       buy = dydxMethods.buy(client, str(symbol), str(buyPrice), str(int(float(amt))))
     return buy
 
-def sell(client, symbol, buyPrice, amt):
+def sell(symbol, buyPrice, amt):
     try:
       buy = dydxMethods.sell(client, symbol, buyPrice, amt)
     except:
       buy = dydxMethods.sell(client, symbol, buyPrice, str(int(float(amt))))
     return buy
 
-def updateBuy(client, symbol, current, orderID, opening=True, sellPrice=1):
+def updateBuy(symbol, current, orderID, opening=True, sellPrice=1):
     orderbook = client.public.get_orderbook(market=symbol).data
     all_orders = dydxMethods.getOrders(client, symbol)
     remainingSize = all_orders[0]['remainingSize']
@@ -75,30 +75,30 @@ def updateBuy(client, symbol, current, orderID, opening=True, sellPrice=1):
     if opening == True:
         if current != target:
             current = target
-            cancelOrders(client)
+            cancelOrders()
             remainingSize = all_orders[0]['remainingSize']
-            orderID = buy(client, symbol, current, remainingSize)
+            orderID = buy(symbol, current, remainingSize)
         elif current == target and remainingSize==str(targetSize):
             current = bottom
-            cancelOrders(client)
+            cancelOrders()
             remainingSize = all_orders[0]['remainingSize']
-            orderID = buy(client, symbol, current, remainingSize)
+            orderID = buy(symbol, current, remainingSize)
     else:
         if current != target:
             if target < sellPrice:
                 current = target
-                cancelOrders(client)
+                cancelOrders()
                 remainingSize = all_orders[0]['remainingSize']
-                orderID = buy(client, symbol, current, remainingSize)
+                orderID = buy(symbol, current, remainingSize)
         elif current == target:
             if remainingSize == str(targetSize):
                 current = bottom
-                cancelOrders(client)
+                cancelOrders()
                 remainingSize = all_orders[0]['remainingSize']
-                orderID = buy(client, symbol, current, remainingSize)
+                orderID = buy(symbol, current, remainingSize)
     return (orderID, current)
 
-def updateSell(client, symbol, current, orderID, opening=True, buyPrice=1):
+def updateSell(symbol, current, orderID, opening=True, buyPrice=1):
     orderbook = client.public.get_orderbook(market=symbol).data
     all_orders = dydxMethods.getOrders(client, symbol)
     remainingSize = all_orders[0]['remainingSize']
@@ -127,30 +127,30 @@ def updateSell(client, symbol, current, orderID, opening=True, buyPrice=1):
     if opening == True:
         if current != target:
             current = target
-            cancelOrders(client)
+            cancelOrders()
             remainingSize = all_orders[0]['remainingSize']
-            orderID = sell(client, symbol, current, remainingSize)
+            orderID = sell(symbol, current, remainingSize)
         elif current == target and remainingSize==str(targetSize):
             current = top
-            cancelOrders(client)
+            cancelOrders()
             remainingSize = all_orders[0]['remainingSize']
-            orderID = sell(client, symbol, current, remainingSize)
+            orderID = sell(symbol, current, remainingSize)
     else:
         if current != target:
             if target > buyPrice:
                 current = target
-                cancelOrders(client)
+                cancelOrders()
                 remainingSize = all_orders[0]['remainingSize']
-                orderID = sell(client, symbol, current, remainingSize)
+                orderID = sell(symbol, current, remainingSize)
         elif current == target:
             if remainingSize == str(targetSize):
                 current = top
-                cancelOrders(client)
+                cancelOrders()
                 remainingSize = all_orders[0]['remainingSize']
-                orderID = sell(client, symbol, current, remainingSize)
+                orderID = sell(symbol, current, remainingSize)
     return (orderID, current)
 
-def determineDirection(client): 
+def determineDirection(): 
     markets = client.public.get_markets().data['markets']
     
     allChanges = []
@@ -173,13 +173,13 @@ def determineDirection(client):
     
     return direction
 
-def isPositionOpen(client):
+def isPositionOpen():
     return len(client.private.get_positions(status='OPEN').data['positions']) != 0 
 
-def isOrderOpen(client):
+def isOrderOpen():
     return len(client.private.get_orders(status='OPEN').data['orders']) != 0 
 
-def computeAmount(client, symbol, direction, initial):
+def computeAmount(symbol, direction, initial):
     markets = client.public.get_markets(market=symbol).data['markets'][symbol]
     stepSize = float(markets['stepSize'])
     orderbook = client.public.get_orderbook(market=symbol).data
@@ -194,7 +194,7 @@ def computeAmount(client, symbol, direction, initial):
     return (price, amt)
 
 
-def stopLoss(client, direction, symbol, price, remainingSize):
+def stopLoss(direction, symbol, price, remainingSize):
     import time 
     account_response = client.private.get_account()
     position_id = account_response.data['account']['positionId']
@@ -214,7 +214,7 @@ def stopLoss(client, direction, symbol, price, remainingSize):
 
     return order_id
 
-def cancelOrders(client):
+def cancelOrders():
     all_orders = client.private.get_orders().data['orders']
     for i in all_orders:
         if i['type'] == 'LIMIT':

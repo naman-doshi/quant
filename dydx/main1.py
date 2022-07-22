@@ -7,47 +7,47 @@ import time
 #client 
 client = dydxMethods.auth()
 
-initial = 4000
+initial = 4500
 
 while True:
-  direction = tradingMethods.determineDirection(client)
+  direction = tradingMethods.determineDirection()
   symbol = tradingMethods.findSymbol()
 
   if direction == 'BUY':
     #to buy
-    compute = tradingMethods.computeAmount(client, symbol, direction, initial)
+    compute = tradingMethods.computeAmount(symbol, direction, initial)
     buyPrice = compute[0]
     amount = compute[1]
 
     #initial buy order
-    orderID = tradingMethods.buy(client, symbol, buyPrice, amount)
+    orderID = tradingMethods.buy(symbol, buyPrice, amount)
     start = time.time()
     client = dydxMethods.auth()
 
-    while tradingMethods.isOrderOpen(client) == True:
+    while tradingMethods.isOrderOpen() == True:
       end = time.time()
       print(end-start)
       #time
-      if end-start < 600 or tradingMethods.isPositionOpen(client) == True:
-        # try:
+      if end-start < 600 or tradingMethods.isPositionOpen() == True:
+        try:
             all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
             if float(remainingSize) != amount:
               start = time.time()
               amount = float(remainingSize)
-            orderID = tradingMethods.updateBuy(client, symbol, buyPrice, orderID)
+            orderID = tradingMethods.updateBuy(symbol, buyPrice, orderID)
             buyPrice = orderID[1]
             orderID = orderID[0]
-        # except:
-        #     break
+        except:
+            break
       else:
         print('time limit exceeded')
-        tradingMethods.cancelOrders(client)
+        tradingMethods.cancelOrders()
         symbol = tradingMethods.findSymbol()
-        compute = tradingMethods.computeAmount(client, symbol, direction, initial)
+        compute = tradingMethods.computeAmount(symbol, direction, initial)
         buyPrice = compute[0]
         amount = compute[1]
-        orderID = tradingMethods.buy(client, symbol, buyPrice, amount)
+        orderID = tradingMethods.buy(symbol, buyPrice, amount)
 
         start = time.time()
       
@@ -73,14 +73,14 @@ while True:
 
     emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
 
-    orderID = tradingMethods.sell(client, symbol, sellPrice, remainingSize)
+    orderID = tradingMethods.sell(symbol, sellPrice, remainingSize)
 
-    while tradingMethods.isOrderOpen(client) == True:
+    while tradingMethods.isOrderOpen() == True:
       try:
-          orderID = tradingMethods.updateSell(client, symbol, sellPrice, orderID, opening=False, buyPrice=buyPrice)
+          orderID = tradingMethods.updateSell(symbol, sellPrice, orderID, opening=False, buyPrice=buyPrice)
           sellPrice = orderID[1]
           orderID = orderID[0]
-          print(sellPrice, tradingMethods.isOrderOpen(client))
+          print(sellPrice, tradingMethods.isOrderOpen())
       except:
           break
       time.sleep(3)
@@ -88,39 +88,39 @@ while True:
     emailMethods.email(f'Closed sold {symbol} at last sell price of {sellPrice}')
   
   else:
-    compute = tradingMethods.computeAmount(client, symbol, direction, initial)
+    compute = tradingMethods.computeAmount(symbol, direction, initial)
     sellPrice = compute[0]
     amount = compute[1]
     client = dydxMethods.auth()
 
     #initial sell order
-    orderID = tradingMethods.sell(client, symbol, sellPrice, amount)
+    orderID = tradingMethods.sell(symbol, sellPrice, amount)
     start = time.time()
 
-    while tradingMethods.isOrderOpen(client) == True:
+    while tradingMethods.isOrderOpen() == True:
       end = time.time()
       print(end-start)
 
       #time
-      if end-start < 600 or tradingMethods.isPositionOpen(client) == True:
+      if end-start < 600 or tradingMethods.isPositionOpen() == True:
         try:
           all_orders = dydxMethods.getOrders(client, symbol)
           remainingSize = all_orders[0]['remainingSize']
           if float(remainingSize) != amount:
             start = time.time()
             amount = float(remainingSize)
-          orderID = tradingMethods.updateSell(client, symbol, sellPrice, orderID)
+          orderID = tradingMethods.updateSell(symbol, sellPrice, orderID)
           sellPrice = orderID[1]
           orderID = orderID[0]
         except:
           break
       else:
-        tradingMethods.cancelOrders(client)
+        tradingMethods.cancelOrders()
         symbol = tradingMethods.findSymbol()
-        compute = tradingMethods.computeAmount(client, symbol, direction, initial)
+        compute = tradingMethods.computeAmount(symbol, direction, initial)
         sellPrice = compute[0]
         amount = compute[1]
-        orderID = tradingMethods.sell(client, symbol, sellPrice, amount)
+        orderID = tradingMethods.sell(symbol, sellPrice, amount)
 
         start = time.time()
       
@@ -148,11 +148,11 @@ while True:
     emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
 
     client = dydxMethods.auth()
-    orderID = tradingMethods.buy(client, symbol, buyPrice, remainingSize)
+    orderID = tradingMethods.buy(symbol, buyPrice, remainingSize)
 
-    while tradingMethods.isOrderOpen(client) == True:
+    while tradingMethods.isOrderOpen() == True:
       try:
-          orderID = tradingMethods.updateBuy(client, symbol, buyPrice, orderID, opening=False, sellPrice=sellPrice)
+          orderID = tradingMethods.updateBuy(symbol, buyPrice, orderID, opening=False, sellPrice=sellPrice)
           buyPrice = orderID[1]
           orderID = orderID[0]
           print(orderID)
