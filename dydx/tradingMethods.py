@@ -33,6 +33,8 @@ def findSymbol():
     return symbol
 
 def buy(symbol, buyPrice, amt):
+    if float(amt) < 0:
+        amt = float(amt) * -1
     try:
       buy = dydxMethods.buy(client, str(symbol), str(buyPrice), str(amt))
     except:
@@ -40,6 +42,8 @@ def buy(symbol, buyPrice, amt):
     return buy
 
 def sell(symbol, buyPrice, amt):
+    if float(amt) < 0:
+        amt = float(amt) * -1
     try:
       buy = dydxMethods.sell(client, symbol, buyPrice, amt)
     except:
@@ -181,6 +185,8 @@ def isOrderOpen():
 
 def computeAmount(symbol, direction, initial):
     markets = client.public.get_markets(market=symbol).data['markets'][symbol]
+    lev = round(((1-float(markets['maintenanceMarginFraction']))/float(markets['initialMarginFraction']))*0.9, 1)
+
     stepSize = float(markets['stepSize'])
     orderbook = client.public.get_orderbook(market=symbol).data
 
@@ -189,7 +195,7 @@ def computeAmount(symbol, direction, initial):
     else:
         price = float(orderbook['asks'][0]['price'])
 
-    amt = str(round((initial/price)*9, str(stepSize).count('0')))
+    amt = str(round((initial/price)*lev, str(stepSize).count('0')))
 
     return (price, amt)
 
@@ -223,7 +229,7 @@ def cancelOrders():
 def addVolume(add):
     with open('dydx/volume.txt') as f:
         lines = f.readlines()
-        vol = int(lines[0])
+        vol = float(lines[0])
         vol += add
     with open('dydx/volume.txt', 'w') as f:
         f.write(str(vol))

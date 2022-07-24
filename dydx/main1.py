@@ -3,13 +3,17 @@ import time
 import tradingMethods
 import emailMethods
 import time
+import confidenceMethods
+import bs4
+import urllib.request
 
-initial = 2500
+initial = 3500
 
 while True:
   client = dydxMethods.auth()
-  direction = tradingMethods.determineDirection()
-  symbol = tradingMethods.findSymbol()
+  symbol = confidenceMethods.findSymbol(initial)
+  direction = symbol[1]
+  symbol = symbol[0]
   markets = client.public.get_markets(market=symbol).data['markets'][symbol]
   tickSize = float(markets['tickSize'])
   
@@ -19,6 +23,7 @@ while True:
     compute = tradingMethods.computeAmount(symbol, direction, initial)
     buyPrice = compute[0]
     amount = compute[1]
+    print(compute)
 
     #initial buy order
     orderID = tradingMethods.buy(symbol, buyPrice, amount)
@@ -43,7 +48,10 @@ while True:
       else:
         print('time limit exceeded')
         tradingMethods.cancelOrders()
-        symbol = tradingMethods.findSymbol()
+        symbol = confidenceMethods.findSymbol(initial)
+        symbol = symbol[0]
+        markets = client.public.get_markets(market=symbol).data['markets'][symbol]
+        tickSize = float(markets['tickSize'])
         compute = tradingMethods.computeAmount(symbol, direction, initial)
         buyPrice = compute[0]
         amount = compute[1]
@@ -51,7 +59,6 @@ while True:
 
         start = time.time()
       
-      time.sleep(3)
 
     
     #init sell
@@ -82,7 +89,6 @@ while True:
           print(sellPrice, tradingMethods.isOrderOpen())
       except:
           break
-      time.sleep(3)
 
     pos = client.private.get_positions(market=symbol, status='CLOSED')
     sellPrice = pos.data['positions'][0]['exitPrice']
@@ -95,6 +101,7 @@ while True:
     compute = tradingMethods.computeAmount(symbol, direction, initial)
     sellPrice = compute[0]
     amount = compute[1]
+    print(compute)
 
     #initial sell order
     orderID = tradingMethods.sell(symbol, sellPrice, amount)
@@ -119,15 +126,17 @@ while True:
           break
       else:
         tradingMethods.cancelOrders()
-        symbol = tradingMethods.findSymbol()
+        symbol = confidenceMethods.findSymbol(initial)
+        symbol = symbol[0]
+        markets = client.public.get_markets(market=symbol).data['markets'][symbol]
+        tickSize = float(markets['tickSize'])
         compute = tradingMethods.computeAmount(symbol, direction, initial)
         sellPrice = compute[0]
         amount = compute[1]
         orderID = tradingMethods.sell(symbol, sellPrice, amount)
 
         start = time.time()
-      
-      time.sleep(3)
+ 
     
     orderbook = client.public.get_orderbook(market=symbol).data
     markets = client.public.get_markets(market=symbol).data['markets'][symbol]
@@ -160,7 +169,6 @@ while True:
       except:
           break
       
-      time.sleep(3)
 
     pos = client.private.get_positions(market=symbol, status='CLOSED')
     buyPrice = pos.data['positions'][0]['exitPrice']
