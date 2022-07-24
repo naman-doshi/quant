@@ -79,26 +79,30 @@ def updateBuy(symbol, current, orderID, opening=True, sellPrice=1):
     if opening == True:
         if current != target:
             current = target
-            cancelOrders()
+            all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
+            cancelOrders()
             orderID = buy(symbol, current, remainingSize)
         elif current == target and remainingSize==str(targetSize):
             current = bottom
-            cancelOrders()
+            all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
+            cancelOrders()
             orderID = buy(symbol, current, remainingSize)
     else:
         if current != target:
             if target < sellPrice:
                 current = target
-                cancelOrders()
+                all_orders = dydxMethods.getOrders(client, symbol)
                 remainingSize = all_orders[0]['remainingSize']
+                cancelOrders()
                 orderID = buy(symbol, current, remainingSize)
         elif current == target:
             if remainingSize == str(targetSize):
                 current = bottom
-                cancelOrders()
+                all_orders = dydxMethods.getOrders(client, symbol)
                 remainingSize = all_orders[0]['remainingSize']
+                cancelOrders()
                 orderID = buy(symbol, current, remainingSize)
     return (orderID, current)
 
@@ -131,26 +135,30 @@ def updateSell(symbol, current, orderID, opening=True, buyPrice=1):
     if opening == True:
         if current != target:
             current = target
-            cancelOrders()
+            all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
+            cancelOrders()
             orderID = sell(symbol, current, remainingSize)
         elif current == target and remainingSize==str(targetSize):
             current = top
-            cancelOrders()
+            all_orders = dydxMethods.getOrders(client, symbol)
             remainingSize = all_orders[0]['remainingSize']
+            cancelOrders()
             orderID = sell(symbol, current, remainingSize)
     else:
         if current != target:
             if target > buyPrice:
                 current = target
-                cancelOrders()
+                all_orders = dydxMethods.getOrders(client, symbol)
                 remainingSize = all_orders[0]['remainingSize']
+                cancelOrders()
                 orderID = sell(symbol, current, remainingSize)
         elif current == target:
             if remainingSize == str(targetSize):
                 current = top
-                cancelOrders()
+                all_orders = dydxMethods.getOrders(client, symbol)
                 remainingSize = all_orders[0]['remainingSize']
+                cancelOrders()
                 orderID = sell(symbol, current, remainingSize)
     return (orderID, current)
 
@@ -233,4 +241,3 @@ def addVolume(add):
         vol += add
     with open('dydx/volume.txt', 'w') as f:
         f.write(str(vol))
-

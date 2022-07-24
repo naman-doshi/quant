@@ -7,7 +7,7 @@ import confidenceMethods
 import bs4
 import urllib.request
 
-initial = 3500
+initial = 3000
 
 while True:
   client = dydxMethods.auth()
@@ -34,17 +34,15 @@ while True:
       print(end-start)
       #time
       if end-start < 600 or tradingMethods.isPositionOpen() == True:
-        try:
-            all_orders = dydxMethods.getOrders(client, symbol)
-            remainingSize = round(float(all_orders[0]['remainingSize']), str(tickSize).count('0'))
-            if remainingSize != amount:
-              start = time.time()
-              amount = remainingSize
-            orderID = tradingMethods.updateBuy(symbol, buyPrice, orderID)
-            buyPrice = orderID[1]
-            orderID = orderID[0]
-        except:
-            break
+        if tradingMethods.isOrderOpen() == True:
+          try:
+              orderID = tradingMethods.updateBuy(symbol, buyPrice, orderID)
+              buyPrice = orderID[1]
+              orderID = orderID[0]
+          except:
+              break
+        else:
+          break
       else:
         print('time limit exceeded')
         tradingMethods.cancelOrders()
@@ -77,7 +75,7 @@ while True:
     tradingMethods.addVolume(float(amt)*float(buyPrice))
     sellPrice = round(sellPrice, str(tickSize).count('0'))
 
-    emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
+    # emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
 
     orderID = tradingMethods.sell(symbol, sellPrice, remainingSize)
 
@@ -89,13 +87,14 @@ while True:
           print(sellPrice, tradingMethods.isOrderOpen())
       except:
           break
-
+    
+    time.sleep(10)
     pos = client.private.get_positions(market=symbol, status='CLOSED')
     sellPrice = pos.data['positions'][0]['exitPrice']
 
     tradingMethods.addVolume(float(amt)*float(sellPrice))
 
-    emailMethods.email(f'Closed sold {symbol} at last sell price of {sellPrice}')
+    # emailMethods.email(f'Closed sold {symbol} at last sell price of {sellPrice}')
   
   else:
     compute = tradingMethods.computeAmount(symbol, direction, initial)
@@ -113,16 +112,14 @@ while True:
 
       #time
       if end-start < 600 or tradingMethods.isPositionOpen() == True:
-        try:
-          all_orders = dydxMethods.getOrders(client, symbol)
-          remainingSize = round(float(all_orders[0]['remainingSize']), str(tickSize).count('0'))
-          if remainingSize != amount:
-            start = time.time()
-            amount = remainingSize
-          orderID = tradingMethods.updateSell(symbol, sellPrice, orderID)
-          sellPrice = orderID[1]
-          orderID = orderID[0]
-        except:
+        if tradingMethods.isOrderOpen() == True:
+          try:
+            orderID = tradingMethods.updateSell(symbol, sellPrice, orderID)
+            sellPrice = orderID[1]
+            orderID = orderID[0]
+          except:
+            break
+        else:
           break
       else:
         tradingMethods.cancelOrders()
@@ -156,7 +153,7 @@ while True:
     buyPrice = round(buyPrice, str(tickSize).count('0'))
     
 
-    emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
+    # emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
 
     orderID = tradingMethods.buy(symbol, buyPrice, remainingSize)
 
@@ -169,12 +166,12 @@ while True:
       except:
           break
       
-
+    time.sleep(10)
     pos = client.private.get_positions(market=symbol, status='CLOSED')
     buyPrice = pos.data['positions'][0]['exitPrice']
     tradingMethods.addVolume(float(amt)*float(buyPrice))
 
-    emailMethods.email(f'Closed bought {symbol} at last buy price of {buyPrice}')
+    # emailMethods.email(f'Closed bought {symbol} at last buy price of {buyPrice}')
 
 
 
