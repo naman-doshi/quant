@@ -129,8 +129,9 @@ class TA:
         self.df = df.iloc[::-1]
         
     def rsi(self):
-        rsi = float(ta.momentum.RSIIndicator(close = self.df['Close'], window = 13).rsi().iloc[-1])
-        return rsi
+        rsi = ta.momentum.RSIIndicator(close = self.df['Close'], window = 13).rsi()
+        rsi = float(rsi.iloc[-1]) - float(rsi.iloc[-8])
+        return rsi/100
     
     def tsi(self):
         tsi = float(ta.momentum.TSIIndicator(close = self.df['Close']).tsi().iloc[-1])
@@ -157,7 +158,7 @@ def coefficientDict(client):
 
         coefficientDict = {}
         for k in volDict:
-            if volDict[k][-1] > 0.1 and volDict[k][1] > 300:
+            if volDict[k][-1] > 0.1 and volDict[k][1] > 200:
                 coefficientDict[k] = volDict[k][0]
 
         coefficientDict = dict(sorted(coefficientDict.items(), key=lambda x: x[1], reverse=True))
@@ -181,10 +182,19 @@ def findSymbol(initial):
         macd = t_a.macd()
         
         #calculations
-        macroScore = ((superboost/10) + multiplier + fng + trend)/4
-        microScore = (macro.f(rsi) + tsi*3 + macd)/5
-        score = (microScore + macroScore) / 2
-        score = dic[i]/(1-score)
+        macroScore = trend
+        microScore = (rsi + tsi*3 + macd)/5
+        print(superboost, multiplier, fng, trend, rsi, tsi, macd)
+        score = microScore*macroScore
+        print(score)
+        if score > 0:
+            score = score * superboost * multiplier
+            if score > 0:
+                score = score * fng
+            else:
+                score = score * abs(fng)
+        else:
+            score = score * superboost * abs(multiplier) * abs(fng)
         print(i, score)
         newDic[i] = score
         

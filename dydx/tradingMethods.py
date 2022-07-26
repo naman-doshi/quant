@@ -41,7 +41,7 @@ def buy(symbol, buyPrice, amt):
       buy = dydxMethods.buy(client, str(symbol), str(buyPrice), str(int(float(amt))))
     return buy
 
-def sell(symbol, buyPrice, amt):
+def sell(symbol, buyPrice, amt, ope=False):
     if float(amt) < 0:
         amt = float(amt) * -1
     try:
@@ -202,6 +202,7 @@ def computeAmount(symbol, direction, initial):
         price = float(orderbook['bids'][0]['price'])
     else:
         price = float(orderbook['asks'][0]['price'])
+    print(orderbook['bids'])
 
     amt = str(round((initial/price)*lev, str(stepSize).count('0')))
 

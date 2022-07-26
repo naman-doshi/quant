@@ -5,7 +5,7 @@ import emailMethods
 import time
 import confidenceMethods
 
-initial = 3000
+initial = 1500
 
 while True:
   client = dydxMethods.auth()
