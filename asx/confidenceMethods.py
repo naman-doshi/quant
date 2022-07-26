@@ -1,9 +1,7 @@
 from audioop import mul
 from torch import negative, positive
-import dydxMethods
 import praw
 import pandas as pd
-import detectEnglish as de
 from collections import Counter
 import bs4
 import urllib.request
@@ -11,105 +9,21 @@ from scipy import interpolate
 import requests
 from pytrends.request import TrendReq
 import ta
-import tradingMethods
+import yfinance as yf
 
 class Macro:
     def __init__(self, symbol):
         pd.set_option("display.max_rows", None, "display.max_columns", None)
-        self.client = dydxMethods.auth()
         x_points = [46, 53, 60, 80, 100]
         y_points = [1, -1, 0, 1, -1]
         self.tck = interpolate.splrep(x_points, y_points)
         self.symbol = symbol
 
-    def superBoost(self):
-        #reddit login
-        reddit = praw.Reddit(client_id='oXQCvleWbdbBCwf4zQGoQQ', \
-                            client_secret='AXjJ0RjwBnVAUfjOct37S5ADVB-Ogg', \
-                            user_agent='cryptosentiment', \
-                            username='aerobull-', \
-                            password='aerobull2006')
-        
-        subreddit = reddit.subreddit('CryptoCurrency')
-        top_subreddit = subreddit.new(limit = 2500)
-
-        topics_dict = { "title":[], \
-                        "score":[], \
-                        "created":[], \
-                        "body":[]}
-
-        for submission in top_subreddit:
-            topics_dict["title"].append(submission.title)
-            topics_dict["score"].append(submission.score)
-            topics_dict["created"].append(submission.created)
-            topics_dict["body"].append(submission.selftext)
-
-        topics_data = pd.DataFrame(topics_dict)
-
-        titles = topics_data['title'].tolist()
-        all_titles = ' '.join(titles)
-
-        all_titles = de.removeNonLetters(all_titles)
-        all_titles = all_titles.split(" ")
-        new_all_titles = []
-        m = ''.join(self.client.public.get_markets().data['markets'].keys())
-
-        #filtering out common phrases that could throw off the algorithm
-        for i in all_titles:
-            try:
-                if i.isupper() == True and len(i) > 2 and len(i) < 5 and i in  m and i != 'USD' and i != 'USDT' and i != 'USDC' and i != 'SDF':
-                    new_all_titles.append(i)
-            except:
-                pass
-
-        c = Counter(new_all_titles)
-        common = [i[0] for i in c.most_common(10)]
-
-        ind = 1
-        if self.symbol in common:
-            ind = 10 - common.index(self.symbol)
-        
-        return ind
-
-    def getMultiplier(self):
-        url = "https://www.blockchaincenter.net/en/bitcoin-rainbow-chart/"
-        url_contents = urllib.request.urlopen(url).read()
-        soup = bs4.BeautifulSoup(url_contents, features="lxml")
-        div = soup.find("div", {"class": "legend"})
-        active = div.find("span", {"class": "active"})
-        content = str(active)
-
-        multiplier = 0
-        if 'Seriously' in content:
-            multiplier = -2
-        elif 'FOMO' in content: 
-            multiplier = 1.5
-        elif 'Is this a' in content:
-            multiplier = 0.5
-        elif 'HODL' in content:
-            multiplier = 0.1
-        elif 'cheap' in content:
-            multiplier = -0.5
-        elif 'Accumulate' in content:
-            multiplier = -1.5
-        elif 'BUY' in content: 
-            multiplier = 1
-        elif 'Fire' in content:
-            multiplier = 2
-        
-        return multiplier
-
-    def fearAndGreed(self):
-        r = requests.get('https://api.alternative.me/fng/')
-        r = r.json()
-        r = int(r['data'][0]['value'])
-        return interpolate.splev(r, self.tck) if r >= 46 else 1
-
     def googleTrend(self):
         pytrend = TrendReq()
-        pytrend.build_payload(kw_list=[self.symbol.replace('-USD','')], timeframe="now 7-d")
+        pytrend.build_payload(kw_list=[self.symbol], timeframe="now 12-m")
         df = pytrend.interest_over_time()
-        trend = int(df[self.symbol.replace('-USD','')].iloc[-1])*0.01
+        trend = int(df[self.symbol].iloc[-1])*0.01
         return trend
 
     def f(self, x):
@@ -119,17 +33,11 @@ class Macro:
 
 class TA:
     def __init__(self, symbol):
-        client = dydxMethods.auth()
-        candles = client.public.get_candles(market=symbol,resolution='5MINS').data['candles']
-        
-        lis = []
-        for i in candles:
-            lis.append([i['startedAt']] + list(map(float, [i['open'], i['high'], i['low'], i['close'], i['baseTokenVolume']])))
-        df = pd.DataFrame(data=lis, columns=['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume'])
-        self.df = df.iloc[::-1]
+        ticker = yf.Ticker(symbol)  
+        self.df = ticker.history(period="max")
         
     def rsi(self):
-        rsi = float(ta.momentum.RSIIndicator(close = self.df['Close'], window = 13).rsi().iloc[-1])
+        rsi = float(ta.momentum.RSIIndicator(close = self.df['Close'], window = 14).rsi().iloc[-1])
         return rsi
     
     def tsi(self):
@@ -157,7 +65,7 @@ def coefficientDict(client):
 
         coefficientDict = {}
         for k in volDict:
-            if volDict[k][-1] > 0.1 and volDict[k][1] > 300:
+            if volDict[k][-1] > 0.2 and volDict[k][1] > 300:
                 coefficientDict[k] = volDict[k][0]
 
         coefficientDict = dict(sorted(coefficientDict.items(), key=lambda x: x[1], reverse=True))

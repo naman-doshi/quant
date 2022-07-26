@@ -4,8 +4,6 @@ import tradingMethods
 import emailMethods
 import time
 import confidenceMethods
-import bs4
-import urllib.request
 
 initial = 3000
 
@@ -27,7 +25,7 @@ while True:
 
     #initial buy order
     orderID = tradingMethods.buy(symbol, buyPrice, amount)
-    start = time.time()
+    start = time.time() 
 
     while tradingMethods.isOrderOpen() == True:
       end = time.time()
@@ -75,7 +73,7 @@ while True:
     tradingMethods.addVolume(float(amt)*float(buyPrice))
     sellPrice = round(sellPrice, str(tickSize).count('0'))
 
-    # emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
+    emailMethods.email(f'Bought {symbol} at average buy price of {buyPrice}')
 
     orderID = tradingMethods.sell(symbol, sellPrice, remainingSize)
 
@@ -94,7 +92,7 @@ while True:
 
     tradingMethods.addVolume(float(amt)*float(sellPrice))
 
-    # emailMethods.email(f'Closed sold {symbol} at last sell price of {sellPrice}')
+    emailMethods.email(f'Closed sold {symbol} at last sell price of {sellPrice}')
   
   else:
     compute = tradingMethods.computeAmount(symbol, direction, initial)
@@ -153,7 +151,7 @@ while True:
     buyPrice = round(buyPrice, str(tickSize).count('0'))
     
 
-    # emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
+    emailMethods.email(f'Sold {symbol} at average sell price of {sellPrice}')
 
     orderID = tradingMethods.buy(symbol, buyPrice, remainingSize)
 
@@ -171,7 +169,7 @@ while True:
     buyPrice = pos.data['positions'][0]['exitPrice']
     tradingMethods.addVolume(float(amt)*float(buyPrice))
 
-    # emailMethods.email(f'Closed bought {symbol} at last buy price of {buyPrice}')
+    emailMethods.email(f'Closed bought {symbol} at last buy price of {buyPrice}')
 
 
 
