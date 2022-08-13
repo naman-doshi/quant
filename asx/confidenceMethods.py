@@ -19,13 +19,6 @@ class Macro:
         self.tck = interpolate.splrep(x_points, y_points)
         self.symbol = symbol
 
-    def googleTrend(self):
-        pytrend = TrendReq()
-        pytrend.build_payload(kw_list=[self.symbol], timeframe="now 12-m")
-        df = pytrend.interest_over_time()
-        trend = int(df[self.symbol].iloc[-1])*0.01
-        return trend
-
     def f(self, x):
         return interpolate.splev(x, self.tck) if x >= 46 else 1
 
@@ -37,8 +30,9 @@ class TA:
         self.df = ticker.history(period="max")
         
     def rsi(self):
-        rsi = float(ta.momentum.RSIIndicator(close = self.df['Close'], window = 14).rsi().iloc[-1])
-        return rsi
+        rsi = ta.momentum.RSIIndicator(close = self.df['Close'], window = 14).rsi()
+        rsi = float(rsi.iloc[-1]) - float(rsi.iloc[-8])
+        return rsi/100
     
     def tsi(self):
         tsi = float(ta.momentum.TSIIndicator(close = self.df['Close']).tsi().iloc[-1])

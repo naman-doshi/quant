@@ -28,7 +28,7 @@ elif 'BUY' in content:
 elif 'Fire' in content:
   multiplier = 2.5
 
-toBuy = profit*0.1*multiplier
+toBuy = profit*multiplier
 proton = toBuy * (1/6)
 bitcoin = toBuy * (5/6)
 print(proton)

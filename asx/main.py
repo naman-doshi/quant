@@ -10,12 +10,18 @@ def f(x):
   return interpolate.splev(x, tck) if x >= 46 else 1
 
 df = pd.read_csv('asx/comp.csv')
+dic = {}
 
 for i in df['Code']:
+  macro = Macro(i)
   stock = TA(i+'.AX')
-  rsi = f(stock.rsi())
+  rsi = stock.rsi()
   tsi = stock.tsi()
   macd = stock.macd()
   avg = (rsi + tsi + macd) / 3
   if rsi > 0 and tsi > 0 and macd > 0:
+    dic[i] = avg
     print(i, avg)
+
+dic = dict(sorted(dic.items(), key=lambda x: x[1], reverse=True))
+print(dic)
